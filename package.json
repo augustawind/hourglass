@@ -1,0 +1,25 @@
+{
+  "name": "hourglass",
+  "version": "0.0.1",
+  "description": "CLI time management tool.",
+  "main": "index.js",
+  "scripts": {
+    "test": "tape -r babel-register test/**/**.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dustinrohde/hourglass.git"
+  },
+  "keywords": [
+    "time",
+    "management",
+    "productivity",
+    "cli"
+  ],
+  "author": "Dustin Rohde",
+  "license": "GPL-3.0",
+  "bugs": {
+    "url": "https://github.com/dustinrohde/hourglass/issues"
+  },
+  "homepage": "https://github.com/dustinrohde/hourglass#readme"
+}
