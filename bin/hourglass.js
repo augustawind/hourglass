@@ -11,16 +11,12 @@ program
 program
   .command('set <action> <time>')
   .description('manually set the amount of time needed for an action')
-  .action(function (action, time) {
-    hg.setTime(action, time)
-  })
+  .action(hg.setTime)
 
 program
   .command('remove <action>')
   .description('remove all data for the given action')
-  .action(function (action) {
-    hg.removeEntry(action)
-  })
+  .action(hg.removeEntry)
 
 program
   .command('track <action>')
@@ -32,8 +28,6 @@ program
 program
   .command('start <action>')
   .description('start timer for the given action')
-  .action(function () {
-    console.log('start')
-  })
+  .action(hg.startTimer)
 
 program.parse(process.argv)

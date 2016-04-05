@@ -1,6 +1,8 @@
 // TODO: add this to dev builds only
 import 'source-map-support/register'
 import path from 'path'
+// TODO: change this because 'play' depends on a 3rd party player being installed
+import play from 'play'
 import fs from 'mz/fs'
 
 const configFile = path.join(process.env.HOME, '.hourglass')
@@ -48,6 +50,20 @@ function editConfig (callback) {
     })
 }
 
+// Return a promise that starts a timer for the given action in the config
+// and beeps once the timer is up.
+function startTimer (action) {
+  return fs.readFile(configFile, 'utf8')
+    .then((data) => {
+      const config = JSON.parse(data)
+      return wait (config[action])
+    })
+    .then(beep)
+    .catch((err) => {
+      throw err
+    })
+}
+
 // Return a promise that resolves after the given delay in milliseconds.
 function wait (ms) {
   return new Promise((resolve, reject) => {
@@ -55,6 +71,11 @@ function wait (ms) {
       resolve()
     }, ms)
   })
+}
+
+// Play a beeping sound.
+function beep (nPlays = 1) {
+  play.sound('../beep.wav')
 }
 
 // Convert a time string to milliseconds. Returns an integer.
@@ -80,4 +101,4 @@ function parseTimeString (time) {
   }
 }
 
-export default { init, setTime, removeEntry }
+export default { init, setTime, removeEntry, startTimer }
