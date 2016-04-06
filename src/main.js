@@ -10,6 +10,7 @@ import Speaker from 'speaker'
 import { InputError, handleErrors } from './error'
 import { parseTimeString, parseMilliseconds } from './format'
 
+const defaultTaskFile = path.join(process.env.HOME, '.hourglass')
 const beepFile = path.join('resources', 'beep.mp3')
 
 // Make Windows emit SIGINT.
@@ -33,8 +34,7 @@ function stringify (object) {
 // Return the path to the task file set by the HOURGLASS_TASKS
 // environment variable if present. Defaults to ~/.hourglass.
 function getTaskFile () {
-  return process.env.HOURGLASS_TASKS ||
-         path.join(process.env.HOME, '.hourglass')
+  return process.env.HOURGLASS_TASKS || defaultTaskFile
 }
 
 // Return a Promise that creates a new .hourglass file in the user's
