@@ -12,13 +12,14 @@ const beepFile = 'beep.mp3'
 
 // Make Windows emit SIGINT.
 if (process.platform === 'win32') {
-  const rl = require('readline').createInterface({
+  const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout
   })
 
   rl.on('SIGINT', function () {
     process.emit('SIGINT')
+    rl.close()
   })
 }
 
