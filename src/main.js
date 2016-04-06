@@ -1,5 +1,5 @@
-// TODO: add this to dev builds only
 import 'source-map-support/register'
+
 import fs from 'mz/fs'
 import lame from 'lame'
 import path from 'path'
