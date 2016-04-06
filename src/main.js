@@ -1,11 +1,12 @@
 // TODO: add this to dev builds only
 import 'source-map-support/register'
 import path from 'path'
-// TODO: change this because 'play' depends on a 3rd party player being installed
-import play from 'play'
 import fs from 'mz/fs'
+import lame from 'lame'
+import Speaker from 'speaker'
 
 const configFile = path.join(process.env.HOME, '.hourglass')
+const beepFile = 'beep.mp3'
 
 // Return a Promise that creates a new .hourglass file in the user's
 // home directory, if one does not already exist.
@@ -15,9 +16,7 @@ function init () {
     .then(() => {
       console.log(`Created .hourglass file at ${configFile}`)
     })
-    .catch((err) => {
-      throw err
-    })
+    .catch(console.error)
 }
 
 // Return a promise that sets the time spent on a given action in
@@ -45,9 +44,7 @@ function editConfig (callback) {
       callback(config)
       return fs.writeFile(configFile, JSON.stringify(config))
     })
-    .catch((err) => {
-      throw err
-    })
+    .catch(console.error)
 }
 
 // Return a promise that starts a timer for the given action in the config
@@ -56,12 +53,16 @@ function startTimer (action) {
   return fs.readFile(configFile, 'utf8')
     .then((data) => {
       const config = JSON.parse(data)
-      return wait (config[action])
+      return wait(config[action])
+    })
+    .then(() => {
+      console.log('Alarm started. Press CTRL-C to stop alarm.')
     })
     .then(beep)
-    .catch((err) => {
-      throw err
+    .then((ms) => {
+      console.log(`Alarm stopped after ${ms / 1000} seconds.`)
     })
+    .catch(console.error)
 }
 
 // Return a promise that resolves after the given delay in milliseconds.
@@ -73,9 +74,27 @@ function wait (ms) {
   })
 }
 
-// Play a beeping sound.
+// Return a promise that plays a beeping sound n times, then returns the time
+// passed.
 function beep (nPlays = 1) {
-  play.sound('../beep.wav')
+  return new Promise((resolve, reject) => {
+    const start = Date.now()
+
+    const play = (i) => {
+      fs.createReadStream(beepFile)
+        .on('error', (err) => {
+          reject(err)
+        })
+        .pipe(new lame.Decoder())
+        .pipe(new Speaker())
+        .on('close', () => {
+          if (--i) play(i)
+          else resolve(Date.now() - start)
+        })
+    }
+
+    play(nPlays)
+  })
 }
 
 // Convert a time string to milliseconds. Returns an integer.
