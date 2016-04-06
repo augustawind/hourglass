@@ -4,6 +4,7 @@ import fs from 'mz/fs'
 import lame from 'lame'
 import path from 'path'
 import readline from 'readline'
+import _ from 'lodash'
 import Speaker from 'speaker'
 
 const configFile = path.join(process.env.HOME, '.hourglass')
@@ -22,14 +23,13 @@ if (process.platform === 'win32') {
 }
 
 // Error class for invalid user input.
-class InputError extends Error {
-  constructor (input, message) {
-    super(message)
-    this.name = 'InputError'
-    this.message = message
-    this.input = input
-  }
+function InputError (input, message) {
+  this.input = input
+  this.message = message
+  this.stack = Error().stack
 }
+InputError.prototype = Object.create(Error.prototype)
+InputError.prototype.name = 'InputError'
 
 // Print error message to stderr prefixed with the program name.
 function logError (message) {
@@ -39,16 +39,16 @@ function logError (message) {
 // Generic error handler.
 function handleErrors (err) {
   if (err instanceof InputError) {
-    logError(`Invalid input: ${err.input}: ${err.message}`)
+    logError(`Invalid input '${err.input}': ${err.message}`)
   } else if (err.code === 'ENOENT') {
     logError(`No config file present at ${configFile}: ` +
-             'Run "hourglass init" to create one')
+             'Run "hourglass init" to create one.')
   } else if (err.code === 'EEXIST') {
-    logError(`${configFile}: File already exists`)
+    logError(`${configFile}: File already exists.`)
   } else if (err.code === 'EISDIR') {
-    logError(`${configFile} is a directory`)
+    logError(`${configFile} is a directory.`)
   } else if (err.code === 'EACCES' || err.code === 'EPERM') {
-    logError(`${configFile}: Permission denied`)
+    logError(`${configFile}: Permission denied.`)
   } else {
     logError(err.toString())
   }
@@ -57,7 +57,7 @@ function handleErrors (err) {
 // Return a Promise that creates a new .hourglass file in the user's
 // home directory, if one does not already exist.
 function init () {
-  const config = JSON.stringify({})
+  const config = JSON.stringify({ tasks: {} })
   return fs.writeFile(configFile, config, { flag: 'wx' })
     .then(() => {
       console.log(`Created .hourglass file at ${configFile}`)
@@ -65,18 +65,22 @@ function init () {
     .catch(handleErrors)
 }
 
-// Return a promise that sets the time spent on a given action in
+// Return a promise that sets the time spent on a given task in
 // the config file.
-function setTime (action, time) {
+function setTime (task, time) {
   return editConfig((config) => {
-    config[action] = parseTimeString(time)
+    _.set(config, ['tasks', task, 'time'], parseTimeString(time))
   })
 }
 
-// Return a promise that removes an entry from the config file.
-function removeEntry (key) {
+// Return a promise that removes a task from the config file.
+function removeTask (task) {
   return editConfig((config) => {
-    delete config[key]
+    if (!_.has(config, ['tasks', task])) {
+      throw new InputError(task, 'Task does not exist')
+    }
+
+    delete config.tasks[task]
   })
 }
 
@@ -92,13 +96,13 @@ function editConfig (callback) {
     .catch(handleErrors)
 }
 
-// Return a promise that starts a timer for the given action in the config
+// Return a promise that starts a timer for the given task in the config
 // and beeps once the timer is up.
-function startTimer (action) {
+function startTimer (task) {
   return fs.readFile(configFile, 'utf8')
     .then((data) => {
       const config = JSON.parse(data)
-      return wait(config[action])
+      return wait(config[task])
     })
     .then(() => {
       console.log('Alarm started. Press CTRL-C to stop alarm.')
@@ -200,4 +204,4 @@ function parseMilliseconds (ms) {
   return ms.toString()
 }
 
-export default { init, setTime, removeEntry, startTimer }
+export default { init, setTime, removeTask, startTimer }
