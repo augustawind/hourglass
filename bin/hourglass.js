@@ -8,7 +8,7 @@ function setTaskFile (taskFile) {
 }
 
 program
-  .option('-t --task-file [path]', 'set task file (defaults to ~/.hourglass)',
+  .option('-t --task-file [path]', 'set task file, default $HOURGLASS_TASKS or ~/.hourglass',
           setTaskFile, path.join(process.env.HOME, '.hourglass'))
 
 program
