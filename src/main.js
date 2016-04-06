@@ -7,7 +7,6 @@ import readline from 'readline'
 import _ from 'lodash'
 import Speaker from 'speaker'
 
-const configFile = path.join(process.env.HOME, '.hourglass')
 const beepFile = 'beep.mp3'
 
 // Make Windows emit SIGINT.
@@ -21,6 +20,18 @@ if (process.platform === 'win32') {
     process.emit('SIGINT')
     rl.close()
   })
+}
+
+// JSON.stringify with an EOL.
+function stringify (object) {
+  return JSON.stringify(object) + '\n'
+}
+
+// Return the path to the task file set by the HOURGLASS_TASKS
+// environment variable if present. Defaults to ~/.hourglass.
+function getTaskFile () {
+  return process.env.HOURGLASS_TASKS ||
+         path.join(process.env.HOME, '.hourglass')
 }
 
 // Error class for invalid user input.
@@ -42,14 +53,14 @@ function handleErrors (err) {
   if (err instanceof InputError) {
     logError(`Invalid input '${err.input}': ${err.message}`)
   } else if (err.code === 'ENOENT') {
-    logError(`No config file present at ${configFile}: ` +
+    logError(`No config file present at ${getTaskFile()}: ` +
              'Run "hourglass init" to create one.')
   } else if (err.code === 'EEXIST') {
-    logError(`${configFile}: File already exists.`)
+    logError(`${getTaskFile()}: File already exists.`)
   } else if (err.code === 'EISDIR') {
-    logError(`${configFile} is a directory.`)
+    logError(`${getTaskFile()} is a directory.`)
   } else if (err.code === 'EACCES' || err.code === 'EPERM') {
-    logError(`${configFile}: Permission denied.`)
+    logError(`${getTaskFile()}: Permission denied.`)
   } else {
     logError(err.toString())
   }
@@ -58,10 +69,10 @@ function handleErrors (err) {
 // Return a Promise that creates a new .hourglass file in the user's
 // home directory, if one does not already exist.
 function init () {
-  const config = JSON.stringify({ tasks: {} })
-  return fs.writeFile(configFile, config, { flag: 'wx' })
+  const config = stringify({ tasks: {} })
+  return fs.writeFile(getTaskFile(), config, { flag: 'wx' })
     .then(() => {
-      console.log(`Created .hourglass file at ${configFile}`)
+      console.log(`Created .hourglass file at ${getTaskFile()}`)
     })
     .catch(handleErrors)
 }
@@ -88,11 +99,11 @@ function removeTask (task) {
 // Return a promise that reads the config file, calls the given callback on
 // it, and then writes the changes.
 function editConfig (callback) {
-  return fs.readFile(configFile, 'utf8')
+  return fs.readFile(getTaskFile(), 'utf8')
     .then((data) => {
       const config = JSON.parse(data)
       callback(config)
-      return fs.writeFile(configFile, JSON.stringify(config))
+      return fs.writeFile(getTaskFile(), stringify(config))
     })
     .catch(handleErrors)
 }
@@ -100,7 +111,7 @@ function editConfig (callback) {
 // Return a promise that starts a timer for the given task in the config
 // and beeps once the timer is up.
 function startTimer (task) {
-  return fs.readFile(configFile, 'utf8')
+  return fs.readFile(getTaskFile(), 'utf8')
     .then((data) => {
       const config = JSON.parse(data)
       return wait(config[task])

@@ -1,7 +1,15 @@
 #!/usr/bin/env node
+var path = require('path')
+var program = require('commander')
+var hg = require('../lib/main')
 
-const program = require('commander')
-const hg = require('../lib/main')
+function setTaskFile (taskFile) {
+  process.env.HOURGLASS_TASKS = taskFile
+}
+
+program
+  .option('-t --task-file [path]', 'set task file (defaults to ~/.hourglass)',
+          setTaskFile, path.join(process.env.HOME, '.hourglass'))
 
 program
   .command('init')
@@ -10,6 +18,7 @@ program
 
 program
   .command('set <task> <time>')
+  .alias('edit')
   .description('manually set the amount of time needed for an task')
   .action(hg.setTime)
 
