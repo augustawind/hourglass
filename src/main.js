@@ -9,6 +9,21 @@ import Speaker from 'speaker'
 const configFile = path.join(process.env.HOME, '.hourglass')
 const beepFile = 'beep.mp3'
 
+// Print error message to stderr prefixed with the program name.
+function logError (message) {
+  console.error(`hourglass: ${message}`)
+}
+
+// Error class for invalid user input.
+class InputError extends Error {
+  constructor (input, message) {
+    super(message)
+    this.name = 'InputError'
+    this.message = message
+    this.input = input
+  }
+}
+
 // Make Windows emit SIGINT.
 if (process.platform === 'win32') {
   const rl = require('readline').createInterface({
@@ -36,7 +51,6 @@ function init () {
 // the config file.
 function setTime (action, time) {
   return editConfig((config) => {
-    // TODO: add try/catch
     config[action] = parseTimeString(time)
   })
 }
@@ -57,7 +71,12 @@ function editConfig (callback) {
       callback(config)
       return fs.writeFile(configFile, JSON.stringify(config))
     })
-    .catch(console.error)
+    .catch((err) => {
+      if (err.name === 'InputError') {
+        logError(`Invalid input: ${err.input}: ${err.message}`)
+      } else {
+      }
+    })
 }
 
 // Return a promise that starts a timer for the given action in the config
@@ -130,8 +149,10 @@ function beep (nPlays = -1) {
 // `S` for seconds, `H` for hours, or 'MS' for milliseconds, case insensitive.
 function parseTimeString (time) {
   const match = /^(\d+)(h|m|s|ms)$/i.exec(time)
+
   if (!match) {
-    throw new Error()
+    throw new InputError(time, 'Time string must be an integer followed by ' +
+                               'one of "H", "M", "S", or "MS" (case insensitive).')
   }
 
   const amount = Number(match[1])
@@ -162,7 +183,7 @@ function parseMilliseconds (ms) {
   if (ms >= 1000) {
     return `${ms / 1000}s`
   }
-  
+
   return ms.toString()
 }
 
