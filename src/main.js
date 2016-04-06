@@ -9,21 +9,6 @@ import Speaker from 'speaker'
 const configFile = path.join(process.env.HOME, '.hourglass')
 const beepFile = 'beep.mp3'
 
-// Print error message to stderr prefixed with the program name.
-function logError (message) {
-  console.error(`hourglass: ${message}`)
-}
-
-// Error class for invalid user input.
-class InputError extends Error {
-  constructor (input, message) {
-    super(message)
-    this.name = 'InputError'
-    this.message = message
-    this.input = input
-  }
-}
-
 // Make Windows emit SIGINT.
 if (process.platform === 'win32') {
   const rl = require('readline').createInterface({
@@ -36,6 +21,39 @@ if (process.platform === 'win32') {
   })
 }
 
+// Error class for invalid user input.
+class InputError extends Error {
+  constructor (input, message) {
+    super(message)
+    this.name = 'InputError'
+    this.message = message
+    this.input = input
+  }
+}
+
+// Print error message to stderr prefixed with the program name.
+function logError (message) {
+  console.error(`hourglass: ${message}`)
+}
+
+// Generic error handler.
+function handleErrors (err) {
+  if (err instanceof InputError) {
+    logError(`Invalid input: ${err.input}: ${err.message}`)
+  } else if (err.code === 'ENOENT') {
+    logError(`No config file present at ${configFile}: ` +
+             'Run "hourglass init" to create one')
+  } else if (err.code === 'EEXIST') {
+    logError(`${configFile}: File already exists`)
+  } else if (err.code === 'EISDIR') {
+    logError(`${configFile} is a directory`)
+  } else if (err.code === 'EACCES' || err.code === 'EPERM') {
+    logError(`${configFile}: Permission denied`)
+  } else {
+    logError(err.toString())
+  }
+}
+
 // Return a Promise that creates a new .hourglass file in the user's
 // home directory, if one does not already exist.
 function init () {
@@ -44,7 +62,7 @@ function init () {
     .then(() => {
       console.log(`Created .hourglass file at ${configFile}`)
     })
-    .catch(console.error)
+    .catch(handleErrors)
 }
 
 // Return a promise that sets the time spent on a given action in
@@ -71,12 +89,7 @@ function editConfig (callback) {
       callback(config)
       return fs.writeFile(configFile, JSON.stringify(config))
     })
-    .catch((err) => {
-      if (err.name === 'InputError') {
-        logError(`Invalid input: ${err.input}: ${err.message}`)
-      } else {
-      }
-    })
+    .catch(handleErrors)
 }
 
 // Return a promise that starts a timer for the given action in the config
@@ -94,7 +107,7 @@ function startTimer (action) {
     .then((ms) => {
       console.log(`Alarm stopped after ${parseMilliseconds(ms)}.`)
     })
-    .catch(console.error)
+    .catch(handleErrors)
 }
 
 // Return a promise that resolves after the given delay in milliseconds.
