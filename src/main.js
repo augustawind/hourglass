@@ -53,7 +53,7 @@ function handleErrors (err) {
   if (err instanceof InputError) {
     logError(`Invalid input '${err.input}': ${err.message}`)
   } else if (err.code === 'ENOENT') {
-    logError(`No config file present at ${getTaskFile()}: ` +
+    logError(`No task file present at ${getTaskFile()}: ` +
              'Run "hourglass init" to create one.')
   } else if (err.code === 'EEXIST') {
     logError(`${getTaskFile()}: File already exists.`)
@@ -78,16 +78,16 @@ function init () {
 }
 
 // Return a promise that sets the time spent on a given task in
-// the config file.
+// the task file.
 function setTime (task, time) {
-  return editConfig((config) => {
+  return editTaskFile((config) => {
     _.set(config, ['tasks', task, 'time'], parseTimeString(time))
   })
 }
 
-// Return a promise that removes a task from the config file.
+// Return a promise that removes a task from the task file.
 function removeTask (task) {
-  return editConfig((config) => {
+  return editTaskFile((config) => {
     if (!_.has(config, ['tasks', task])) {
       throw new InputError(task, 'Task does not exist')
     }
@@ -96,9 +96,9 @@ function removeTask (task) {
   })
 }
 
-// Return a promise that reads the config file, calls the given callback on
+// Return a promise that reads the task file, calls the given callback on
 // it, and then writes the changes.
-function editConfig (callback) {
+function editTaskFile (callback) {
   return fs.readFile(getTaskFile(), 'utf8')
     .then((data) => {
       const config = JSON.parse(data)
@@ -140,8 +140,6 @@ function wait (ms) {
 // indefinitely or until SIGINT is received.
 function beep (nPlays = -1) {
   return new Promise((resolve, reject) => {
-    const start = Date.now()
-
     let i = nPlays - 1
 
     // Allow for graceful interrupt with CTRL-C.
@@ -154,6 +152,8 @@ function beep (nPlays = -1) {
       // Reset CTRL-C to default behavior.
       process.on('SIGINT', process.exit)
     })
+
+    const start = Date.now()
 
     const play = () => {
       fs.createReadStream(beepFile)

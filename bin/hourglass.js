@@ -24,6 +24,7 @@ program
 
 program
   .command('remove <task>')
+  .alias('delete')
   .description('remove all data for the given task')
   .action(hg.removeTask)
 
