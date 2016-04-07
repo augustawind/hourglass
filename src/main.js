@@ -13,7 +13,7 @@ import { InputError, handleErrors } from './error'
 import { parseTimeString, parseMilliseconds } from './format'
 
 const defaultTaskFile = path.join(process.env.HOME, '.hourglass')
-const beepFile = path.join('resources', 'beep.mp3')
+const beepFile = path.join(__dirname, '../resources/beep.mp3')
 
 // Make Windows emit SIGINT.
 if (process.platform === 'win32') {
