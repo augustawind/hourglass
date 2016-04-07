@@ -3,7 +3,7 @@ import { InputError } from './error'
 // Convert a time string to milliseconds. Returns an integer.
 // A time string is a number followed by one of `M` for minutes,
 // `S` for seconds, `H` for hours, or 'MS' for milliseconds, case insensitive.
-export function parseTimeString (time) {
+function parseTimeString (time) {
   const match = /^(\d+)(h|m|s|ms)$/i.exec(time)
 
   if (!match) {
@@ -29,7 +29,7 @@ export function parseTimeString (time) {
 
 // Convert an integer in milliseconds to a time string. This is basically
 // the functional opposite of `parseTimeString`.
-export function parseMilliseconds (ms) {
+function parseMilliseconds (ms) {
   if (ms >= 3600000) {
     return `${ms / 3600000}h`
   }
@@ -42,3 +42,5 @@ export function parseMilliseconds (ms) {
 
   return ms.toString()
 }
+
+export default { parseTimeString, parseMilliseconds }
