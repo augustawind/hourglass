@@ -34,11 +34,51 @@ function init () {
 }
 
 // Return a promise that sets the time spent on a given task in
-// the task file.
-function setTask (task, time) {
+// the task file. If `trackTask` has been called, this will erase
+// the data for that task and start fresh.
+function setTask (task, timeString) {
   return editTaskFile((config) => {
-    _.set(config, ['tasks', task, 'time'], parseTimeString(time))
+    const time = ['tasks', task, 'time']
+    const timesTracked = ['tasks', task, 'timesTracked']
+
+    // If `timesTracked` property exists, remove `time` and
+    // `timesTracked` properties (overriding any previous calls to
+    // `trackTask`).
+    if (_.has(config, timesTracked)) {
+      _.unset(config, time)
+      _.unset(config, timesTracked)
+    }
+
+    _.set(config, time, parseTimeString(timeString))
   })
+}
+
+// Return a promise that waits for a SIGINT from the user, then records
+// the time elapsed for the given task in the task file, averaging it
+// with all previous calls to `trackTask` for the given task. If `setTask`
+// has been called, this will erase the data for that task and start fresh.
+function trackTask (task) {
+  return timer.suspend()
+    .then((ms) => {
+      editTaskFile((config) => {
+        const time = ['tasks', task, 'time']
+        const timesTracked = ['tasks', task, 'timesTracked']
+
+        if (_.has(config, timesTracked)) {
+          // If `timesTracked` property exists, increment it.
+          _.set(config, timesTracked, _.get(config, timesTracked) + 1)
+        } else {
+          // If not, set it to `1` and set `time` to 0 (overriding any
+          // previous calls to `setTask`.
+          _.set(config, time, 0)
+          _.set(config, timesTracked, 1)
+        }
+
+        // Set `time` to the average of all calls to trackTask.
+        const average = _.get(config, time) + ms / _.get(config, timesTracked)
+        _.set(config, time, average)
+      })
+    })
 }
 
 // Return a promise that removes a task from the task file.
@@ -99,5 +139,7 @@ function startTimer (task, { silent = false } = {}) {
 }
 
 export default {
-  init, setTaskFile, getTaskFile, setTask, removeTask, viewTasks, startTimer
+  setTaskFile, getTaskFile,
+  init, setTask, trackTask, removeTask, viewTasks,
+  startTimer
 }

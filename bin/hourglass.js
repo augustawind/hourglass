@@ -37,9 +37,7 @@ program
 program
   .command('track <task>')
   .description('track time spent on the given task')
-  .action(function () {
-    console.log('track')
-  })
+  .action(hg.trackTask)
 
 program
   .command('start <task>')
