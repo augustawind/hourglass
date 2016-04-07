@@ -5,6 +5,8 @@ import ProgressBar from 'progress'
 import readline from 'readline'
 import Speaker from 'speaker'
 
+import { parseMilliseconds } from './format'
+
 const beepFile = path.join(__dirname, '../resources/beep.mp3')
 
 // Make Windows emit SIGINT.

@@ -82,7 +82,7 @@ function viewTasks (tasks = []) {
 // Return a promise that starts a timer for the given task in the config
 // and beeps once the timer is up. If the `silent` option is `true`, no
 // progress bar will be displayed.
-function startTimer (task, { silent = false,  } = {}) {
+function startTimer (task, { silent = false } = {}) {
   return fs.readFile(getTaskFile(), 'utf8')
     .then((data) => {
       const config = JSON.parse(data)
