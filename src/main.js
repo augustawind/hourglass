@@ -19,6 +19,12 @@ function getTaskFile () {
   return process.env.HOURGLASS_TASKS
 }
 
+// Set the path to the current task file.
+function setTaskFile (taskFile) {
+  process.env.HOURGLASS_TASKS = taskFile
+  console.log(process.env.HOURGLASS_TASKS)
+}
+
 // Make Windows emit SIGINT.
 if (process.platform === 'win32') {
   const rl = readline.createInterface({
@@ -37,8 +43,7 @@ function stringify (object) {
   return JSON.stringify(object) + '\n'
 }
 
-// Return a Promise that creates a new .hourglass file in the user's
-// home directory, if one does not already exist.
+// Return a Promise that creates a new task file if one does not already exist.
 function init () {
   const config = stringify({ tasks: {} })
   return fs.writeFile(getTaskFile(), config, { flag: 'wx' })
@@ -50,7 +55,7 @@ function init () {
 
 // Return a promise that sets the time spent on a given task in
 // the task file.
-function setTime (task, time) {
+function setTask (task, time) {
   return editTaskFile((config) => {
     _.set(config, ['tasks', task, 'time'], parseTimeString(time))
   })
@@ -97,7 +102,7 @@ function viewTasks (tasks = []) {
 // Return a promise that starts a timer for the given task in the config
 // and beeps once the timer is up. If the `silent` option is `true`, no
 // progress bar will be displayed.
-function startTimer (task, { silent = false } = {}) {
+function startTimer (task, { silent = false,  } = {}) {
   return fs.readFile(getTaskFile(), 'utf8')
     .then((data) => {
       const config = JSON.parse(data)
@@ -119,19 +124,15 @@ function startTimer (task, { silent = false } = {}) {
 function wait (task, ms, silent = false) {
   console.log('Timer started. Press CTRL-C to cancel.')
 
+  if (silent) {
+    return new Promise((resolve) => setTimeout(resolve, ms))
+  }
+
   const delay = 1000
 
   const bar = new ProgressBar(
     `Task '${task}' -> :elapseds/${parseMilliseconds(ms)} [:bar] :percent`,
     { total: ms / delay, width: 80, incomplete: '.' })
-
-  if (silent) {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve()
-      }, ms)
-    })
-  }
 
   return new Promise((resolve) => {
     const timer = setInterval(() => {
@@ -180,4 +181,6 @@ function beep (nPlays = -1) {
   })
 }
 
-export default { init, setTime, removeTask, viewTasks, startTimer }
+export default {
+  init, setTaskFile, getTaskFile, setTask, removeTask, viewTasks, startTimer
+}
