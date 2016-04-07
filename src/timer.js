@@ -36,7 +36,8 @@ function wait (task, ms, silent = false) {
 
   const bar = new ProgressBar(
     `Task '${task}' -> :elapseds/${parseMilliseconds(ms)} [:bar] :percent`,
-    { total: ms / delay, width: 80, incomplete: '.' })
+    { total: ms / delay, width: 80, incomplete: '.' }
+  )
 
   return new Promise((resolve) => {
     const timer = setInterval(() => {
