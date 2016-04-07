@@ -22,7 +22,6 @@ function getTaskFile () {
 // Set the path to the current task file.
 function setTaskFile (taskFile) {
   process.env.HOURGLASS_TASKS = taskFile
-  console.log(process.env.HOURGLASS_TASKS)
 }
 
 // Make Windows emit SIGINT.
