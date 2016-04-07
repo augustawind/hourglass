@@ -29,6 +29,11 @@ program
   .action(hg.removeTask)
 
 program
+  .command('view [tasks...]')
+  .description('view given tasks, or all tasks if left blank')
+  .action(hg.viewTasks)
+
+program
   .command('track <task>')
   .description('track time spent on the given task')
   .action(function () {

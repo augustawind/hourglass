@@ -3,6 +3,7 @@ import 'source-map-support/register'
 import fs from 'mz/fs'
 import lame from 'lame'
 import path from 'path'
+import prettyjson from 'prettyjson'
 import readline from 'readline'
 import _ from 'lodash'
 import Speaker from 'speaker'
@@ -79,6 +80,21 @@ function editTaskFile (callback) {
     .catch(handleErrors)
 }
 
+// Return a promise that prints the given tasks, or all tasks if none are given.
+function viewTasks (tasks = []) {
+  return editTaskFile((config) => {
+    tasks.forEach((task) => {
+      if (!_.has(config, ['tasks', task])) {
+        throw new InputError(task, 'Task does not exist')
+      }
+    })
+
+    const selection = tasks.length ? _.pick(config.tasks, tasks) : config.tasks
+    const formatted = _.mapValues(selection, (task) => parseMilliseconds(task.time))
+    console.log(prettyjson.render(formatted))
+  })
+}
+
 // Return a promise that starts a timer for the given task in the config
 // and beeps once the timer is up.
 function startTimer (task) {
@@ -144,4 +160,4 @@ function beep (nPlays = -1) {
   })
 }
 
-export default { init, setTime, removeTask, startTimer }
+export default { init, setTime, removeTask, viewTasks, startTimer }
