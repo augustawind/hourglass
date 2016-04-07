@@ -17,8 +17,8 @@ export function handleErrors (err) {
   if (err instanceof InputError) {
     logError(`Invalid input '${err.input}': ${err.message}`)
   } else if (err.code === 'ENOENT') {
-    logError(`${err.path}: No such task file: ` +
-             'Run "hourglass init" to create one.')
+    logError(`${err.path}: No such file: ` +
+             'Run "hourglass init" to create a new task file.')
   } else if (err.code === 'EEXIST') {
     logError(`${err.path}: File already exists.`)
   } else if (err.code === 'EISDIR') {

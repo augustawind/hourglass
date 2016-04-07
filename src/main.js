@@ -4,6 +4,7 @@ import fs from 'mz/fs'
 import lame from 'lame'
 import path from 'path'
 import prettyjson from 'prettyjson'
+import ProgressBar from 'progress'
 import readline from 'readline'
 import _ from 'lodash'
 import Speaker from 'speaker'
@@ -96,12 +97,13 @@ function viewTasks (tasks = []) {
 }
 
 // Return a promise that starts a timer for the given task in the config
-// and beeps once the timer is up.
-function startTimer (task) {
+// and beeps once the timer is up. If the `silent` option is `true`, no
+// progress bar will be displayed.
+function startTimer (task, { silent = false } = {}) {
   return fs.readFile(getTaskFile(), 'utf8')
     .then((data) => {
       const config = JSON.parse(data)
-      return wait(config[task])
+      return wait(task, config.tasks[task].time, silent)
     })
     .then(() => {
       console.log('Alarm started. Press CTRL-C to stop alarm.')
@@ -113,12 +115,34 @@ function startTimer (task) {
     .catch(handleErrors)
 }
 
-// Return a promise that resolves after the given delay in milliseconds.
-function wait (ms) {
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      resolve()
-    }, ms)
+// Return a promise that waits for the given delay in milliseconds,
+// displaying the name of a task and a progress bar while waiting.
+// If `silent` is `true`, display nothing.
+function wait (task, ms, silent = false) {
+  console.log('Timer started. Press CTRL-C to cancel.')
+
+  const delay = 1000
+
+  const bar = new ProgressBar(
+    `Task '${task}' -> :elapseds/${parseMilliseconds(ms)} [:bar] :percent`,
+    { total: ms / delay, width: 80, incomplete: '.' })
+
+  if (silent) {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        resolve()
+      }, ms)
+    })
+  }
+
+  return new Promise((resolve) => {
+    const timer = setInterval(() => {
+      bar.tick()
+      if (bar.complete) {
+        resolve()
+        clearInterval(timer)
+      }
+    }, delay)
   })
 }
 
@@ -144,9 +168,7 @@ function beep (nPlays = -1) {
 
     const play = () => {
       fs.createReadStream(beepFile)
-        .on('error', (err) => {
-          reject(err)
-        })
+        .on('error', reject)
         .pipe(new lame.Decoder())
         .pipe(new Speaker())
         .on('close', () => {

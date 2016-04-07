@@ -43,6 +43,7 @@ program
 program
   .command('start <task>')
   .description('start timer for the given task')
+  .option('-s --silent', 'don\'t show the progress bar')
   .action(hg.startTimer)
 
 program.parse(process.argv)
