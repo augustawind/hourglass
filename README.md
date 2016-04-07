@@ -20,7 +20,7 @@ A CLI time management tool that runs on NodeJS.
       -h, --help             output usage information
       -t --task-file [path]  set task file, default $HOURGLASS_TASKS or ~/.hourglass
 
-## Subcommand options
+### Subcommand options
 
     hourglass start [options] <task>
 
