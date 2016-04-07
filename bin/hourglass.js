@@ -8,12 +8,13 @@ function setTaskFile (taskFile) {
 }
 
 program
+  .description('A CLI time management tool that runs on NodeJS.')
   .option('-t --task-file [path]', 'set task file, default $HOURGLASS_TASKS or ~/.hourglass',
           setTaskFile, path.join(process.env.HOME, '.hourglass'))
 
 program
   .command('init')
-  .description('create an initial .hourglass file')
+  .description('create an initial task file')
   .action(hg.init)
 
 program
