@@ -10,8 +10,8 @@
     "build": "babel src/ -d lib/",
     "build-dev": "npm run build -- --source-maps",
     "watch": "npm run build-dev -- --watch",
-    "lint": "standard src/*.js bin/*.js",
-    "test": "blue-tape -r babel-register test/**/*.js | faucet"
+    "lint": "standard src/*.js bin/*.js test/*.js",
+    "test": "blue-tape -r babel-register test/*.js | faucet"
   },
   "repository": {
     "type": "git",

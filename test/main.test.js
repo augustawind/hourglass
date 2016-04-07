@@ -3,7 +3,7 @@ import path from 'path'
 import { stdout } from 'test-console'
 import test from 'blue-tape'
 
-import { init, setTask, removeTask, viewTasks, startTimer } from '../src/main'
+import { init, setTask, removeTask, viewTasks } from '../src/main'
 
 function setup () {
   // Set path to test task file.
@@ -38,7 +38,7 @@ test('init', (t) => {
 
 // setup() that also calls hourglass.init()
 function setup2 () {
-  const taskFile = setup ()
+  const taskFile = setup()
   init()
   return taskFile
 }
